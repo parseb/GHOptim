@@ -4,8 +4,8 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background-start-rgb: 	1, 164, 191;
+  --background-end-rgb: 157, 200, 199;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,3 +25,16 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+.logo-green {
+  color: #2F592F;
+}
+
+.logo-red {
+  color: #C52A2A;
+}
+
+.nbc-blue {
+  color: #0184BF;
+}
+
