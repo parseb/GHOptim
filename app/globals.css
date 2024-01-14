@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 	1, 164, 191;
-  --background-end-rgb: 157, 200, 199;
+  --foreground-rgb: 1, 30, 75;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --background-start-rgb:  214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
   }
 }
 
@@ -37,4 +37,3 @@ body {
 .nbc-blue {
   color: #0184BF;
 }
-

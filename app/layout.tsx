@@ -4,10 +4,9 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 
 import { ConnectProvider } from './connectkit-provider'
-
 import {NavBar} from '@/app/ui/NavBar'
 
-const inter = Inter({ subsets: ['latin'] })
+// const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'GHOtick',
@@ -21,14 +20,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body>
+      
       <ConnectProvider>
-      <main>
 
-      <NavBar />
-      {children}
-      </main>
-        </ConnectProvider>
+<NavBar />
+<br></br>
+<div className="container-main">
+
+{children}
+</div>
+  </ConnectProvider>
+      
      </body>
     </html>
   )

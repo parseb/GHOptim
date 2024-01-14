@@ -3,8 +3,153 @@ export default function Page() {
 
 
     return (
-        <div className="flex self-center">
+        <div className='container' style={{ height: '100vh' }}>
             <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+                        <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+                        <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+        <br />
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+                        <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+        <br />
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+                        <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+
+            <p> GIVE PAGE</p>
+            
+
         </div>
     );
 }

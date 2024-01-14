@@ -7,7 +7,7 @@ export default function Page() {
     ];
 
     return (
-        <div className="center-container">
+        <div className='container' style={{ height: '100vh' }}>
             <div className="dashboard">
                 <div className="box"></div>
                 <div className="box"></div>
