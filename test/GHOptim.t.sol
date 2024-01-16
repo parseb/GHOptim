@@ -11,8 +11,11 @@ contract CounterTest is Test {
     address public A1;
     address public A2;
 
+    address GHO_MAINNET_ADDRESS = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;
+
     function setUp() public {
-        G = new GHOptim();
+
+        G = new GHOptim(GHO_MAINNET_ADDRESS);
 
         A0 = 0xaeBf88463b38b72f893cd83220C483d9321496bE;
         A1 = 0x34F10b00cd1F032106BD7CBdA208934cF70764BC;
@@ -30,6 +33,11 @@ contract CounterTest is Test {
         assertTrue(tokens.length > 1);
         assertTrue(G.getAssetPrice(tokens[0]) > 2000, "weth is not under 2000 @ 01.24");
         assertTrue(G.getAllAssetPrices().length >1, "should be bigger" );
+
+        //// DEV env fork setup
+        assertTrue(G.GHO().hasRole(bytes32(0),msg.sender), "is not GHO admin");
+
+
     } 
 
 

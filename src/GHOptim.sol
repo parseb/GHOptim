@@ -15,17 +15,13 @@ contract GHOptim is IGHOptim {
     /// ---- parent(hash) -> return currentLastHash[parent]
     mapping(bytes32 => bytes32) currentLastHash;
 
-    address public GHO_ADDRESS;
     IGhoToken public GHO;
 
     ///////////////////
     //////////////////
 
-
-    constructor(address denominator, address incomeBucket) {
-        GHO_ADDRESS = GHO;
-
-
+    constructor(address denominator) {
+        GHO = IGhoToken(denominator);
     }
 
 

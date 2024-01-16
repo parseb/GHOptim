@@ -1,0 +1,32 @@
+# Learn how to configure DevNet templates using YAML here: https://docs.tenderly.co/devnets/yaml-template
+# Gives ETH, GIVES facilitator manager role to 0xaeBf88463b38b72f893cd83220C483d9321496bE
+# TODO: Pre-compute contract address and grant facilitator and bucket manager role
+
+version: v0
+template:
+  name: GHOptim
+  block-number: 19019418
+  visibility: TEAM
+  network-id: 1
+  execution:
+    chain-config:
+      chain-id: 1
+    block-gas-limit: 10000000
+    base-fee-per-gas: 1000000000
+  balances:
+    - address: 0x395eD9ffd32b255dBD128092ABa40200159d664b
+      amount: 1000
+    - address: 0xaeBf88463b38b72f893cd83220C483d9321496bE
+      amount: 10000000
+  erc20:
+    - contract: 0x6B175474E89094C44Da98b954EedeAC495271d0F # DAI
+      balances:
+        - address: 0xaeBf88463b38b72f893cd83220C483d9321496bE
+          amount: 100
+  display-name: ghotick
+  storage:
+    - address: 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f
+      slots:
+        - 0xbb4847e279544d497bb67b07270131df5a6e82353d0530a748ff5812e31e41a5: 0x0000000000000000000000000000000000000000000000000000000000000001
+        - 0x5e20732f79076148980e17b6ce9f22756f85058fe2765420ed48a504bef5a8bc: 0x0000000000000000000000000000000000000000000000000000000000000001
+        - 0x7c353fa2585450782b529838f38e2b464390119169ac919c03d1003aeb4b7710: 0x0000000000000000000000000000000000000000000000000000000000000001
