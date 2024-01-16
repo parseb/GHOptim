@@ -17,6 +17,7 @@ contract GHOptim is IGHOptim {
 
     IGhoToken public GHO;
 
+    
     ///////////////////
     //////////////////
 
@@ -25,21 +26,73 @@ contract GHOptim is IGHOptim {
     }
 
 
+    // function executeOperation()
+
+
+
+    function updateBucketCapacity() public {
+        (address[] memory assets, uint256[] memory prices) = getAllAssetsPrices();
+        uint256 totalValue;
+
+        for (uint256 i = 0; i < assets.length; i++) {
+            (
+                uint256 currentATokenBalance,
+                ,
+                ,
+                ,
+                ,
+                ,
+                ,
+                ,
+                bool usageAsCollateralEnabled
+            ) = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getUserReserveData(assets[i], address(this));
+            
+            if (! usageAsCollateralEnabled ||  (currentATokenBalance < 1 ether )) continue;
+            
+            uint256 assetValue = ((prices[i] / 0.1 gwei) * currentATokenBalance);
+            totalValue += uint128(assetValue);
+        }
+
+        GHO.setFacilitatorBucketCapacity(address(this), uint128(totalValue));
+
+    }
+
+
+
     ///////////
     /// View
 
-    function getAssetPrice(address asset_) external view returns (uint256) {
-        return AaveV3Ethereum.ORACLE.getAssetPrice(asset_);
-    }
+        
+
+
 
     /// External
-    function getAllowedTokens() public view returns (address[] memory) {
-        return AaveV3Ethereum.POOL.getReservesList();
+
+
+    function getAllAssetsPrices() public view returns (address[] memory assets, uint256[] memory prices) {
+        assets = AaveV3Ethereum.POOL.getReservesList();
+        prices = AaveV3Ethereum.ORACLE.getAssetsPrices(assets);
     }
 
-    function getAllAssetPrices() external view returns (uint256[] memory ) {
-        address[] memory assets = getAllowedTokens();
-        return AaveV3Ethereum.ORACLE.getAssetsPrices(assets);
-    }
-    
+// function getUserReserveData(
+//     address asset,
+//     address user
+//   )
+//     external
+//     view
+//     override
+//     returns (
+//       uint256 currentATokenBalance,
+//       uint256 currentStableDebt,
+//       uint256 currentVariableDebt,
+//       uint256 principalStableDebt,
+//       uint256 scaledVariableDebt,
+//       uint256 stableBorrowRate,
+//       uint256 liquidityRate,
+//       uint40 stableRateLastUpdated,
+//       bool usageAsCollateralEnabled
+//     )
+
 }
+
+
