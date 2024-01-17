@@ -3,6 +3,8 @@ pragma solidity 0.8.20;
 
 import './interfaces/IGHOptim.sol';
 import './abstract/AaveFx.sol';
+import {IAToken} from 'aave-v3-core/contracts/interfaces/IAToken.sol';
+
 
 /// GHO based 
 contract GHOptim is IGHOptim, AaveFx {
@@ -23,14 +25,19 @@ contract GHOptim is IGHOptim, AaveFx {
 
     constructor(address denominator) AaveFx(denominator) {}
 
-
-    function executeOperation(uint8 typeOfOperation, Position memory P, bytes32 hash ) external {
-
+    //// @notice main entry point for all user centered operations
+    /// @param typeOfOperation uint indicative and correlating to Position state
+    /// @param P Position details
+    /// @param h hash of position
+    function executeOperation(uint8 typeOfOperation, Position memory P, bytes32 h ) external {
+        
     }
 
-
-
-
+    
+    function profit(address Aasset) external {
+        if (! (msg.sender == genesis) ) revert Unauthorised();
+        IAToken(Aasset).transfer(genesis, IAToken(Aasset).balanceOf(address(this)) - assetTotalLiable[Aasset]);
+    } 
 
 }
 

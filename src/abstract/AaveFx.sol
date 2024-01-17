@@ -5,13 +5,17 @@ import {AaveV3Ethereum} from "aave-address-book/AaveV3Ethereum.sol";
 import {IGhoToken} from "gho-core/src/contracts/gho/interfaces/IGhoToken.sol";
 
 
+error Unauthorised();
+
 //// @notice AaveFx - accumulates functions related to managing Aave mechanisms
 abstract contract AaveFx {
 
     IGhoToken public GHO;
+    address public genesis;
 
     constructor(address GHOaddress) {
         GHO = IGhoToken(GHOaddress);
+        genesis = msg.sender;
     }
 
 
@@ -62,6 +66,7 @@ abstract contract AaveFx {
     function getATokenAddressFor(address assetAddress) public view returns (address aToken) {
         (aToken,,) = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getReserveTokensAddresses(assetAddress);
     }
+
 
 
 
