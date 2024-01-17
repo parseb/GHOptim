@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {GHOptim} from "../src/GHOptim.sol";
 import {IGhoToken} from "gho-core/src/contracts/gho/interfaces/IGhoToken.sol";
+import {IAToken} from 'aave-v3-core/contracts/interfaces/IAToken.sol';
 
 contract GHOinit is Test {
     GHOptim G;
@@ -59,7 +60,10 @@ contract GHOinit is Test {
         assertTrue(GHO20.getFacilitator(address(G)).bucketCapacity > 0, "no capacity" );
         assertTrue(GHO20.hasRole(BUCKET_MANAGER_ROLE, address(G)), "expected to have manager role");
 
+        assertTrue(IAToken(G.getATokenAddressFor(tokens[0])).UNDERLYING_ASSET_ADDRESS() == tokens[0], "token missmatch" );
     } 
+
+    
 
 
     // function test_updateBucketCapacity() external {
