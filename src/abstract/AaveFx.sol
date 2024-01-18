@@ -3,20 +3,10 @@ pragma solidity 0.8.20;
 
 import {AaveV3Ethereum, IAaveOracle} from "aave-address-book/AaveV3Ethereum.sol";
 import {IGhoToken} from "gho-core/src/contracts/gho/interfaces/IGhoToken.sol";
-import {IGHOptim, Position} from "../interfaces/IGHOptim.sol";
+import {IGHOptim, Position, State} from "../interfaces/IGHOptim.sol";
 import {IAToken} from "aave-v3-core/contracts/interfaces/IAToken.sol";
 
 import {VerifySignature} from "../utils/VerifySignature.sol";
-
-error Unauthorised();
-error InvalidExecutionPrice();
-error InvalidReference();
-error TransferFaileure();
-error NotTaker();
-error Illegal();
-error BadSigP();
-error OnlyTaker();
-error MinOneDay();
 
 //// @notice AaveFx - accumulates functions related to managing Aave mechanisms
 abstract contract AaveFx is IGHOptim, VerifySignature {
@@ -36,29 +26,35 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
         _setAllowedOnlyOnce();
     }
 
+    event NewPosition(bytes32 positionHash);
+
     function verifyLPsig(Position memory P) public pure returns (bool s) {
+        Position memory copy = P;
         bytes memory signature = P.LPsig;
         delete P.executionPrice;
         delete P.expriresAt;
         delete P.LPsig;
-        delete P.state;
         delete P.taker;
+
+        P.state = State.Staging;
+        P.durationBalance[1] = 0;
 
         bytes32 h = getEthSignedMessageHash(keccak256(abi.encode(P)));
         address signer = recoverSigner(h, signature);
+
+        // P.taker = msg.sender;   //// @dev state poisoned in pure as P.taker in main returns 0x0;
+        P = copy;
         return (signer == P.lper);
     }
 
     function updateBucketCapacity() public {
         (address[] memory assets, uint256[] memory prices) = getAllAssetsPrices();
-        uint256 totalValue;
+        uint128 totalValue;
 
         for (uint256 i = 0; i < assets.length; i++) {
+            assets[i] = getATokenAddressFor(assets[i]);
             if (!isAllowedAToken[assets[i]]) continue;
-            (uint256 currentATokenBalance,,,,,,,, bool usageAsCollateralEnabled) =
-                AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getUserReserveData(assets[i], address(this));
-
-            if (!usageAsCollateralEnabled) continue;
+            uint256 currentATokenBalance = IAToken(assets[i]).balanceOf(address(this));
 
             uint256 assetValue = ((prices[i] / 0.1 gwei) * currentATokenBalance);
             totalValue += uint128(assetValue);

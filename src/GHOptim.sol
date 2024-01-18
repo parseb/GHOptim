@@ -2,6 +2,9 @@
 pragma solidity 0.8.20;
 
 import "./abstract/AaveFx.sol";
+import "./interfaces/IGHOptim.sol";
+
+import "forge-std/console2.sol";
 
 /// GHO based
 contract GHOptim is AaveFx {
@@ -24,53 +27,58 @@ contract GHOptim is AaveFx {
 
     //// @notice main entry point for all user centered operations
     /// @param P Position details
-    function executeOperation(Position memory P) external {
+    function takePosition(Position memory P) external {
         if (!isAllowedAToken[P.asset]) revert Illegal();
+        if (uint8(P.state) <= 1) revert Untaken();
+        if (P.executionPrice * P.wantedPrice * P.amount == 0) revert AZero();
+
+        (uint256 cost, uint256 executionPrice) = calculateTakePrice(P);
+        if ((P.executionPrice) != (executionPrice / 1 ether)) revert InvalidExecutionPrice();
+
         IAToken AT = IAToken(P.asset);
-        uint256 executionPrice = getPriceOfAsset(AT.UNDERLYING_ASSET_ADDRESS());
-        bytes32 h = keccak256(abi.encode((P)));
+        uint256 duration = P.expriresAt >= (block.timestamp + 1 days) ? P.expriresAt - block.timestamp : 0;
+        if (duration == 0) revert MinOneDay();
 
-        if (P.expriresAt > block.timestamp) {
-            liquidatePosition(hashPosition[h]);
+        if (P.durationBalance[0] < duration) revert InsufficientDuration();
+        if (P.taker != _msgSender()) revert NotTaker();
 
-            return;
+        if (!verifyLPsig(P)) revert BadSigP(); ///// console2.log(P.taker, _msgSender(), "but why P.taker always 0 sadge");
+
+        uint256 amount = P.amount * 1 ether;
+
+        if (cost / P.amount > executionPrice) revert Bro();
+        if (!(GHO.transferFrom(_msgSender(), address(this), cost) && AT.transferFrom(P.lper, address(this), amount))) {
+            revert TransferFaileure();
         }
-        /// Untaken
 
-        if (P.state == 1) {
-            if (!verifyLPsig(P)) revert BadSigP();
+        assetTotalLiable[P.asset] += amount;
 
-            if (P.executionPrice != executionPrice) revert InvalidExecutionPrice();
-            if (P.taker != _msgSender()) revert NotTaker();
-
-            if (P.expriresAt - block.timestamp < 1 days) revert MinOneDay();
-
-            /// new position minting
-
-            uint256 diff = ((P.wantedPrice * 1_00000000) - executionPrice) * 0.1 gwei * P.amount;
-            if (
-                !(
-                    GHO.transferFrom(_msgSender(), address(this), diff)
-                        && AT.transferFrom(P.lper, address(this), P.amount * 1 ether)
-                )
-            ) revert TransferFaileure();
-
-            assetTotalLiable[P.asset] += P.amount * 1 ether;
-
-            P.state = 1;
-            P.durationBalance = P.durationBalance - (P.expriresAt - block.timestamp);
+        if (P.state == State.Sell) {
+            uint256 b = GHO.balanceOf(address(this));
+            GHO.mint(address(this), executionPrice * P.amount);
+            if (b <= GHO.balanceOf(address(this))) revert AaveRug();
+            AT.transfer(AT.RESERVE_TREASURY_ADDRESS(), amount);
         }
+
+        P.durationBalance[1] =
+            P.durationBalance[1] == 0 ? P.durationBalance[0] - duration : P.durationBalance[1] - duration;
+
+        bytes32 h = keccak256(abi.encode(P));
+
+        userHashes[P.lper].push(h);
+        userHashes[P.taker].push(h);
+        hashPosition[h] = P;
 
         hashPosition[h] = P;
-        return;
+
+        emit NewPosition(h);
     }
 
     // _manageExistingPosition();
 
-    function liquidatePosition(Position memory P) public {
-        address taker = hashPosition[keccak256(abi.encode(P))].taker;
-
-        if (msg.sig != IGHOptim(address(this)).executeOperation.selector && _msgSender() != taker) revert OnlyTaker();
+    function liquidatePosition(bytes32 positionHash) public {
+        Position memory P = hashPosition[positionHash];
+        if (P.expriresAt > block.timestamp || _msgSender() != P.taker) revert OnlyTakerOrExpired();
 
         ///// if position type
 
@@ -93,7 +101,13 @@ contract GHOptim is AaveFx {
         );
     }
 
-    function _msgSender() private returns (address) {
+    function _msgSender() private view returns (address) {
         return msg.sender;
+    }
+
+    function calculateTakePrice(Position memory P) public view returns (uint256 cost, uint256 executionPrice) {
+        executionPrice = getPriceOfAsset(IAToken(P.asset).UNDERLYING_ASSET_ADDRESS()) * 10 gwei;
+
+        cost = ((P.wantedPrice * 1 ether) - executionPrice) * P.amount;
     }
 }
