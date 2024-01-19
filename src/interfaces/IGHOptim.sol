@@ -16,7 +16,7 @@ struct Position {
     uint256 amount;
     /// full units
     uint256 wantedPrice;
-    /// 1 eth
+    /// 1
     uint256[2] durationBalance;
     /// signed,current
     /// % 1 day == 0
@@ -42,9 +42,13 @@ error Bro();
 error AaveRug();
 error InsufficientDuration();
 error AZero();
+error AlreadyTaken();
+error NotADex();
 
 interface IGHOptim {
     // Interface functions go here
 
     function takePosition(Position memory P) external;
+
+    function liquidatePosition(bytes32 positionHash) external;
 }

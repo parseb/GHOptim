@@ -31,6 +31,7 @@ contract GHOptim is AaveFx {
         if (!isAllowedAToken[P.asset]) revert Illegal();
         if (uint8(P.state) <= 1) revert Untaken();
         if (P.executionPrice * P.wantedPrice * P.amount == 0) revert AZero();
+        if (P.executionPrice >= P.wantedPrice) revert NotADex();
 
         (uint256 cost, uint256 executionPrice) = calculateTakePrice(P);
         if ((P.executionPrice) != (executionPrice / 1 ether)) revert InvalidExecutionPrice();
@@ -57,14 +58,13 @@ contract GHOptim is AaveFx {
             uint256 b = GHO.balanceOf(address(this));
             GHO.mint(address(this), executionPrice * P.amount);
             if (b <= GHO.balanceOf(address(this))) revert AaveRug();
-            AT.transfer(AT.RESERVE_TREASURY_ADDRESS(), amount);
         }
 
         P.durationBalance[1] =
             P.durationBalance[1] == 0 ? P.durationBalance[0] - duration : P.durationBalance[1] - duration;
 
         bytes32 h = keccak256(abi.encode(P));
-
+        if (hashPosition[h].executionPrice >= 1) revert AlreadyTaken();
         userHashes[P.lper].push(h);
         userHashes[P.taker].push(h);
         hashPosition[h] = P;
@@ -74,24 +74,45 @@ contract GHOptim is AaveFx {
         emit NewPosition(h);
     }
 
-    // _manageExistingPosition();
-
     function liquidatePosition(bytes32 positionHash) public {
         Position memory P = hashPosition[positionHash];
         if (P.expriresAt > block.timestamp || _msgSender() != P.taker) revert OnlyTakerOrExpired();
 
-        ///// if position type
+        uint256 currentPrice = getPriceOfAsset(IAToken(P.asset).UNDERLYING_ASSET_ADDRESS()) / 0.1 gwei;
 
-        //// flashloan? ...always pay in gho?
-
-        /// if successful sell - liquidate || reliquify
+        if (P.state == State.Sell) {
+            if (currentPrice < P.executionPrice) {
+                uint256 payout = (P.executionPrice - currentPrice) * P.amount * 1 ether;
+                GHO.mint(P.taker, payout);
+                GHO.transfer(P.lper, P.wantedPrice * 1 ether);
+                IAToken(P.asset).transfer(IAToken(P.asset).RESERVE_TREASURY_ADDRESS(), P.amount * 1 ether);
+                P.executionPrice = 1;
+            } else {
+                uint256 profit = (P.wantedPrice - P.executionPrice) * 1 ether;
+                GHO.transfer(P.lper, profit / 2);
+                delete P.executionPrice;
+            }
+            if (P.state == State.Buy) {
+                if (currentPrice > P.wantedPrice) {
+                    uint256 payout = (currentPrice - P.wantedPrice) * P.amount * 1 ether;
+                    GHO.mint(P.taker, payout);
+                    GHO.mint(P.lper, P.wantedPrice * P.amount * 1 ether);
+                    P.executionPrice = 1;
+                } else {
+                    uint256 profit = (P.wantedPrice - P.executionPrice);
+                    GHO.transfer(P.lper, profit / 2);
+                    delete P.executionPrice;
+                }
+            }
+        }
+        delete P.taker;
+        delete P.expriresAt;
+        hashPosition[positionHash] = P;
     }
 
     /// @notice Sweeps Atoken surplus
     /// @param Aasset_ atoken address
     function profit(address Aasset_) external {
-        // if (!(msg.sender == genesis)) revert Unauthorised();
-
         uint256 onePercentAlmost = IAToken(Aasset_).balanceOf(address(this)) / 101;
         IAToken(Aasset_).transfer(genesis, (onePercentAlmost * 69) - assetTotalLiable[Aasset_]);
         IAToken(Aasset_).transfer(genesis, (onePercentAlmost) - assetTotalLiable[Aasset_]);
