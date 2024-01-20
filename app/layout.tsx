@@ -1,5 +1,4 @@
 
-import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
@@ -8,7 +7,7 @@ import {NavBar} from '@/app/ui/NavBar'
 
 // const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'GHOtick',
   description: 'GHO denominated digital asset options',
 }

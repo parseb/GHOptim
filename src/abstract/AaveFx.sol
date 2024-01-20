@@ -27,23 +27,23 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
     }
 
     event NewPosition(bytes32 positionHash);
+    event PositionLiquid(bytes32 positionHash);
 
     function verifyLPsig(Position memory P) public pure returns (bool s) {
         Position memory copy = P;
         bytes memory signature = P.LPsig;
-        delete P.executionPrice;
-        delete P.expriresAt;
-        delete P.LPsig;
-        delete P.taker;
+        delete copy.executionPrice;
+        delete copy.expriresAt;
+        delete copy.LPsig;
+        delete copy.taker;
 
-        P.state = State.Staging;
-        P.durationBalance[1] = 0;
+        copy.state = State.Staging;
+        copy.durationBalance[1] = 0;
 
-        bytes32 h = getEthSignedMessageHash(keccak256(abi.encode(P)));
+        bytes32 h = getEthSignedMessageHash(keccak256(abi.encode(copy)));
         address signer = recoverSigner(h, signature);
 
-        // P.taker = msg.sender;   //// @dev state poisoned in pure as P.taker in main returns 0x0;
-        P = copy;
+        // P.taker = msg.sender;   //// @dev state poisoned in pure. P.taker in main returns 0x0;
         return (signer == P.lper);
     }
 
@@ -96,4 +96,11 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
     function getPriceOfAsset(address Asset) public view returns (uint256) {
         return ORACLE.getAssetPrice(Asset);
     }
-}
+
+    function getPosition(bytes32 hashOf) public view returns (Position memory)
+ {
+    return hashPosition[hashOf];
+ }
+ 
+ 
+ }

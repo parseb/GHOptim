@@ -48,7 +48,13 @@ error NotADex();
 interface IGHOptim {
     // Interface functions go here
 
-    function takePosition(Position memory P) external;
+    function takePosition(Position memory P) external returns (bytes32);
 
     function liquidatePosition(bytes32 positionHash) external;
+
+function getPosition(bytes32 hashOf) external view returns (Position memory);
+
+
+
+function calculateTakePrice(Position memory) external view returns (uint256 cost, uint256 executionPrice);
 }

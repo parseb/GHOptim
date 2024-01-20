@@ -11,23 +11,11 @@ contract GHOptim is AaveFx {
     ///////////////////
     //////////////////
 
-    /// stack?
-    // struct Position {
-    //     address asset;
-    //     uint8 state;
-    //     uint256 expriresAt;
-    //     uint256 amount; /// full units
-    //     uint256 wantedPrice; /// 1 eth
-    //     address taker;
-    //     address lper;
-    //     uint256 executionPrice;
-    //     bytes LPsig;
-    // }
     constructor(address denominator) AaveFx(denominator) {}
 
     //// @notice main entry point for all user centered operations
     /// @param P Position details
-    function takePosition(Position memory P) external {
+    function takePosition(Position memory P) external returns (bytes32) {
         if (!isAllowedAToken[P.asset]) revert Illegal();
         if (uint8(P.state) <= 1) revert Untaken();
         if (P.executionPrice * P.wantedPrice * P.amount == 0) revert AZero();
@@ -43,11 +31,10 @@ contract GHOptim is AaveFx {
         if (P.durationBalance[0] < duration) revert InsufficientDuration();
         if (P.taker != _msgSender()) revert NotTaker();
 
-        if (!verifyLPsig(P)) revert BadSigP(); ///// console2.log(P.taker, _msgSender(), "but why P.taker always 0 sadge");
-
+        P.taker = _msgSender(); /// ^
         uint256 amount = P.amount * 1 ether;
 
-        if (cost / P.amount > executionPrice) revert Bro();
+        // if (cost / P.amount > executionPrice) revert Bro(); 
         if (!(GHO.transferFrom(_msgSender(), address(this), cost) && AT.transferFrom(P.lper, address(this), amount))) {
             revert TransferFaileure();
         }
@@ -57,7 +44,7 @@ contract GHOptim is AaveFx {
         if (P.state == State.Sell) {
             uint256 b = GHO.balanceOf(address(this));
             GHO.mint(address(this), executionPrice * P.amount);
-            if (b <= GHO.balanceOf(address(this))) revert AaveRug();
+            if (b >= GHO.balanceOf(address(this))) revert AaveRug();
         }
 
         P.durationBalance[1] =
@@ -68,18 +55,21 @@ contract GHOptim is AaveFx {
         userHashes[P.lper].push(h);
         userHashes[P.taker].push(h);
         hashPosition[h] = P;
+        
+        if (!verifyLPsig(P)) revert BadSigP(); ///// console2.log(P.taker, _msgSender(), "but why P.taker always 0 sadge");
 
-        hashPosition[h] = P;
-
+        
         emit NewPosition(h);
+        return h;
     }
 
     function liquidatePosition(bytes32 positionHash) public {
         Position memory P = hashPosition[positionHash];
+
         if (P.expriresAt > block.timestamp || _msgSender() != P.taker) revert OnlyTakerOrExpired();
 
         uint256 currentPrice = getPriceOfAsset(IAToken(P.asset).UNDERLYING_ASSET_ADDRESS()) / 0.1 gwei;
-
+        uint256 profit;
         if (P.state == State.Sell) {
             if (currentPrice < P.executionPrice) {
                 uint256 payout = (P.executionPrice - currentPrice) * P.amount * 1 ether;
@@ -88,10 +78,13 @@ contract GHOptim is AaveFx {
                 IAToken(P.asset).transfer(IAToken(P.asset).RESERVE_TREASURY_ADDRESS(), P.amount * 1 ether);
                 P.executionPrice = 1;
             } else {
-                uint256 profit = (P.wantedPrice - P.executionPrice) * 1 ether;
+                 profit = (P.wantedPrice - P.executionPrice) * 1 ether;
                 GHO.transfer(P.lper, profit / 2);
+                GHO.transfer(_msgSender(), profit / 20);
+
                 delete P.executionPrice;
             }
+        }
             if (P.state == State.Buy) {
                 if (currentPrice > P.wantedPrice) {
                     uint256 payout = (currentPrice - P.wantedPrice) * P.amount * 1 ether;
@@ -99,20 +92,25 @@ contract GHOptim is AaveFx {
                     GHO.mint(P.lper, P.wantedPrice * P.amount * 1 ether);
                     P.executionPrice = 1;
                 } else {
-                    uint256 profit = (P.wantedPrice - P.executionPrice);
+                     profit = (P.wantedPrice - P.executionPrice);
                     GHO.transfer(P.lper, profit / 2);
+                    GHO.transfer(_msgSender(), profit / 20);
+
                     delete P.executionPrice;
                 }
             }
-        }
+        
         delete P.taker;
         delete P.expriresAt;
         hashPosition[positionHash] = P;
+
+        emit PositionLiquid(positionHash);
     }
+    
 
     /// @notice Sweeps Atoken surplus
     /// @param Aasset_ atoken address
-    function profit(address Aasset_) external {
+    function profitTake(address Aasset_) external {
         uint256 onePercentAlmost = IAToken(Aasset_).balanceOf(address(this)) / 101;
         IAToken(Aasset_).transfer(genesis, (onePercentAlmost * 69) - assetTotalLiable[Aasset_]);
         IAToken(Aasset_).transfer(genesis, (onePercentAlmost) - assetTotalLiable[Aasset_]);
