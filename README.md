@@ -1,3 +1,18 @@
+## Dev Notes
+
+Partial success running dapp locally using forked tenderly testnet and applying state modifications and setup. No need to update ABIs and addresses. Let forked network sync to prevent need for unarchived state. <br>
+`forge script script/GHODeployDeveNet.sol --rpc-url http://127.0.0.1:8545 -vvvv --broadcast`
+<br>
+where
+<br>
+`anvil --rpc-url $RPCmainDevTenderly` is testnet (beta)
+
+
+
+
+
+
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**

@@ -12,7 +12,8 @@ const config = createConfig(
 
     // Required
     appName: "GHOptim",
-    alchemyId: process.env.NEXT_PRIVATE_ALCHEMY_ID, 
+    // alchemyId: process.env.NEXT_PRIVATE_ALCHEMY_ID,
+      
 
 
     // Optional

@@ -1,7 +1,7 @@
 {
   "transactions": [
     {
-      "rpc": "https://virtual.mainnet.rpc.tenderly.co/7ece415b-14c8-4de7-a7c8-c987d4896bc7"
+      "rpc": "https://rpc.vnet.tenderly.co/devnet/ghoptim_devnetall/cb817a4c-f10f-456b-b288-db702e415156"
     }
   ]
 }
