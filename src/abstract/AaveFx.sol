@@ -97,6 +97,28 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
         return ORACLE.getAssetPrice(Asset);
     }
 
+    function getPriceOfAaveAsset(address aTokenAddress) public view returns (uint256) {
+        return getPriceOfAsset(IAToken(aTokenAddress).UNDERLYING_ASSET_ADDRESS()) / 0.1 gwei;
+    }
+
+    function getAllAaveAssetPrices() public view returns(address[] memory assets, uint256[] memory prices) {
+        (assets, prices) = getAllAssetsPrices();
+for (uint256 i = 0; i < assets.length; i++) {
+    assets[i] = getATokenAddressFor(assets[i]);
+}
+    }
+
+    function getAllForUser(address userAddress) external view returns(address[] memory assets, uint256[] memory prices, Position[] memory userPositions) {
+        (assets, prices) = getAllAaveAssetPrices();
+        bytes32[] memory userHS = userHashes[userAddress];
+        
+        uint i;
+        for(i; i< userHS.length; ++i) {
+            userPositions[i] = hashPosition[userHS[i]];
+        }
+
+    } 
+
     function getPosition(bytes32 hashOf) public view returns (Position memory) {
         return hashPosition[hashOf];
     }

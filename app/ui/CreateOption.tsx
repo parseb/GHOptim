@@ -1,9 +1,12 @@
+
 import { 
         useWaitForTransaction, 
         useContractWrite
 } from 'wagmi'
 
-import {GHOptimABI,AaveAssets, GHOptimContract, AAveOracle, AAvePool, GHOptimToken,GHOtokenABI , provider, AaveAsset} from "../lib/contracts";
+import React from 'react';
+
+import {GHOptimABI,AaveAssets, GHOtoken, GHOptimAddress, GHOptimContract, AAveOracle, AAvePool,GHOtokenABI , provider, AaveAsset} from "../lib/contracts";
 import {contractAddr} from "../../public/deployments"
 import {
         Button,
@@ -12,47 +15,65 @@ import {
         Select,
         Textarea,
         TextInput,
+
         Dropdown,
         DropdownItem
     } from 'flowbite-react';
-    import { useContractRead, useAccount, useBalance } from 'wagmi'
+    import { useContractRead, useBalance } from 'wagmi'
+    import { useWalletClient, Address } from 'wagmi'
 
 import {useIsMounted} from 'connectkit'
-    
-export async function CreateOption() {
 
-    async function submit(e: React.FormEvent<HTMLFormElement>) { 
+
+export function CreateOption() {
+    const clientResult = useWalletClient();
+
+
+     function submit(e: React.FormEvent<HTMLFormElement>) { 
         e.preventDefault() 
         const formData = new FormData(e.target as HTMLFormElement) 
     }
 
-    if     (useIsMounted()) {
-        const { address, connector, isConnected } = useAccount()
+    // if     (useIsMounted()) {
+    //     const { address, connector, isConnected } = useAccount()
 
-    }
+    // }
 
-    async function getBalanceFor(assetAddr: `0x${string}`) {
+    async function  getBalanceFor(assetAddr: `0x${string}`) {
+
         return useBalance({
-            address: address,
+            address: clientResult.data?.account.address,
             token: assetAddr,
           }).data?.formatted
     }
+    
+    async function getAllAssetPrices(assetAddr:`0x${string}`) {
+        const priceData = useContractRead({
+            abi: GHOptimABI,
+            address: GHOptimAddress as `0x${string}`,
+            functionName: 'getPriceOfAaveAsset',
+            args: [assetAddr] 
+            
+        })
+
+    }
+
     return (
-        <form onSubmit={submit}>
-                <div className='mb-2 block'>
-                <Label value="Asset" />
-                </div>
-                <Dropdown label={"Aave Asset"} >
-                    {AaveAssets.map((asset:AaveAsset) => (
-                            
+        <form onSubmit={submit} style={{ margin: '0 auto', width: '50vw' }}>
+            <div className='mb-2 block'>
+                <Label value="Asset" htmlFor='asset-selector' />
+            </div>
+            <Dropdown id="asset-selector" label={"Aave Asset"} >
+                {AaveAssets.map((asset:AaveAsset) => (
+                    <DropdownItem value={asset.address}> 
+                        ${asset.name} | ${getBalanceFor(asset.address) || "loading balance"}
+                    </DropdownItem>
+                ))}
+            </Dropdown>
+            <Label htmlFor="wanted-price-range" value="Wanted Price" />
+            <RangeSlider id="wanted-price-range" min={}/>
 
-                        <DropdownItem value={asset.address}> 
-                        `${asset.name} [balance: ${ getBalanceFor(asset.address)}]`
-                        </DropdownItem>
-                    ))}
-                </Dropdown>
-
-                <Button type='submit'>Sign Offer</Button>
+            <Button type='submit'>Sign Offer</Button>
         </form>
     )
 }
