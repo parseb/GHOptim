@@ -97,10 +97,7 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
         return ORACLE.getAssetPrice(Asset);
     }
 
-    function getPosition(bytes32 hashOf) public view returns (Position memory)
- {
-    return hashPosition[hashOf];
- }
- 
- 
- }
+    function getPosition(bytes32 hashOf) public view returns (Position memory) {
+        return hashPosition[hashOf];
+    }
+}

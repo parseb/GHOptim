@@ -44,6 +44,7 @@ error InsufficientDuration();
 error AZero();
 error AlreadyTaken();
 error NotADex();
+error ResidualPermit();
 
 interface IGHOptim {
     // Interface functions go here
@@ -52,9 +53,7 @@ interface IGHOptim {
 
     function liquidatePosition(bytes32 positionHash) external;
 
-function getPosition(bytes32 hashOf) external view returns (Position memory);
+    function getPosition(bytes32 hashOf) external view returns (Position memory);
 
-
-
-function calculateTakePrice(Position memory) external view returns (uint256 cost, uint256 executionPrice);
+    function calculateTakePrice(Position memory) external view returns (uint256 cost, uint256 executionPrice);
 }
