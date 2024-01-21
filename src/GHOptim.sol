@@ -68,11 +68,11 @@ contract GHOptim is AaveFx {
     function liquidatePosition(bytes32 positionHash) public {
         Position memory P = hashPosition[positionHash];
 
-        /// Prevent Offer Rolling (LPer withdraws deposit after having been used at leas once.)
         if (P.executionPrice == 1 && _msgSender() == P.lper) {
             delete hashPosition[positionHash];
             if (!IAToken(P.asset).transfer(_msgSender(), P.amount * 1 ether)) revert TransferFaileure();
             if (IAToken(P.asset).allowance(_msgSender(), address(this)) > 1) revert ResidualPermit();
+            return;
         }
 
         if (P.expriresAt > block.timestamp || _msgSender() != P.taker) revert OnlyTakerOrExpired();
@@ -82,9 +82,10 @@ contract GHOptim is AaveFx {
         if (P.state == State.Sell) {
             if (currentPrice < P.executionPrice) {
                 uint256 payout = (P.executionPrice - currentPrice) * P.amount * 1 ether;
-                GHO.mint(P.taker, payout);
+                GHO.transfer(P.taker, payout);
                 GHO.transfer(P.lper, P.wantedPrice * 1 ether);
                 IAToken(P.asset).transfer(IAToken(P.asset).RESERVE_TREASURY_ADDRESS(), P.amount * 1 ether);
+                assetTotalLiable[P.asset] -= P.amount * 1 ether;
                 P.executionPrice = 1;
             } else {
                 profit = (P.wantedPrice - P.executionPrice) * 1 ether;
@@ -99,6 +100,8 @@ contract GHOptim is AaveFx {
                 uint256 payout = (currentPrice - P.wantedPrice) * P.amount * 1 ether;
                 GHO.mint(P.taker, payout);
                 GHO.mint(P.lper, P.wantedPrice * P.amount * 1 ether);
+                IAToken(P.asset).transfer(IAToken(P.asset).RESERVE_TREASURY_ADDRESS(), P.amount * 1 ether);
+                assetTotalLiable[P.asset] -= P.amount * 1 ether;
                 P.executionPrice = 1;
             } else {
                 profit = (P.wantedPrice - P.executionPrice);
