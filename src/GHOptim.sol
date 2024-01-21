@@ -56,7 +56,7 @@ contract GHOptim is AaveFx {
 
         hashPosition[h] = P;
 
-        if (!verifyLPsig(P)) revert BadSigP(); ///// console2.log(P.taker, _msgSender(), "but why P.taker always 0 sadge");
+        if (!verifyLPsig(P)) revert BadSigP();
 
         emit NewPosition(h);
         return h;
