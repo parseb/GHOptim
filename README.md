@@ -13,7 +13,6 @@
 ####  GHOptim: Efficient, GHO-Denominating Aave-dependent Options Protocol
 
 Introduction:
-GHOptim is an advanced and efficient options protocol designed for GHO denominations, operating within the Aave decentralized finance ecosystem. Developed by parseb (Bogdan A), 
 
 GHOptim provides a versatile platform for executing options contracts with a focus on flexibility and ease of use.
 
