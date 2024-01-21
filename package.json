@@ -12,6 +12,7 @@
     "@nextui-org/react": "^2.2.9",
     "@vercel/postgres": "^0.5.1",
     "connectkit": "^1.6.0",
+    "eth-permit": "^0.2.3",
     "ethers": "^6.10.0",
     "flowbite": "^2.2.1",
     "flowbite-react": "^0.7.2",
