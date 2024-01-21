@@ -4,17 +4,14 @@ pragma solidity 0.8.20;
 import "./abstract/AaveFx.sol";
 import "./interfaces/IGHOptim.sol";
 
-import "forge-std/console2.sol";
-
-/// GHO based
+/// @title GHOptim: An efficient, GHO denominating, Aave dependent Options Protocol
+/// @author parseb | Bogdan A
 contract GHOptim is AaveFx {
-    ///////////////////
-    //////////////////
-
     constructor(address denominator) AaveFx(denominator) {}
 
-    //// @notice main entry point for all user centered operations
-    /// @param P Position details
+    /// @notice First point of contact of a Position. Can be executed only by the position taker that pays for it.
+    /// @notice Transfers the collateral from the LP. In case of Sell orders, mints GHO as a substitute for selling.
+    /// @param P Complete position containing execution data ase well as Permit signature
     function takePosition(Position memory P) external returns (bytes32) {
         if (!isAllowedAToken[P.asset]) revert Illegal();
         if (uint8(P.state) <= 1) revert Untaken();
@@ -31,11 +28,9 @@ contract GHOptim is AaveFx {
         if (P.taker != _msgSender()) revert NotTaker();
 
         P.taker = _msgSender();
-
-        /// ^
         uint256 amount = P.amount * 1 ether;
 
-        // if (cost / P.amount > executionPrice) revert Bro();
+        if (cost / P.amount > executionPrice) revert ValueSensitivity();
         if (
             !(
                 GHO.transferFrom(_msgSender(), address(this), cost)
@@ -58,8 +53,7 @@ contract GHOptim is AaveFx {
 
         bytes32 h = keccak256(abi.encode(P));
         if (hashPosition[h].executionPrice >= 1) revert AlreadyTaken();
-        userHashes[P.lper].push(h);
-        userHashes[P.taker].push(h);
+
         hashPosition[h] = P;
 
         if (!verifyLPsig(P)) revert BadSigP(); ///// console2.log(P.taker, _msgSender(), "but why P.taker always 0 sadge");
@@ -68,13 +62,16 @@ contract GHOptim is AaveFx {
         return h;
     }
 
+    /// @notice closes a position provided it is expired or called by its owner
+    /// @notice depending on the outcome, the LP is recapitalized or the underlying is re-auctioned
+    /// @param positionHash hash of position to be fetched from storage
     function liquidatePosition(bytes32 positionHash) public {
         Position memory P = hashPosition[positionHash];
 
         /// Prevent Offer Rolling (LPer withdraws deposit after having been used at leas once.)
         if (P.executionPrice == 1 && _msgSender() == P.lper) {
             delete hashPosition[positionHash];
-            if (! IAToken(P.asset).transfer(_msgSender(), P.amount * 1 ether)) revert TransferFaileure();
+            if (!IAToken(P.asset).transfer(_msgSender(), P.amount * 1 ether)) revert TransferFaileure();
             if (IAToken(P.asset).allowance(_msgSender(), address(this)) > 1) revert ResidualPermit();
         }
 
@@ -119,8 +116,9 @@ contract GHOptim is AaveFx {
         emit PositionLiquid(positionHash);
     }
 
-    /// @notice Sweeps Atoken surplus
-    /// @param Aasset_ atoken address
+    /// @notice Sweeps Atoken surplus and redistributes it to Aave threasury and genesis
+    /// @notice open execution, rewards 1% to executor
+    /// @param Aasset_ wanted aToken address
     function profitTake(address Aasset_) external {
         uint256 onePercentAlmost = IAToken(Aasset_).balanceOf(address(this)) / 101;
         IAToken(Aasset_).transfer(genesis, (onePercentAlmost * 69) - assetTotalLiable[Aasset_]);
@@ -135,6 +133,9 @@ contract GHOptim is AaveFx {
         return msg.sender;
     }
 
+    /// @notice calculates the cost (price) payed by the option taker
+    /// @notice the cost delta, price wanted by the liquidity provider and current value of tradeable assets
+    /// @param P is the targeted position
     function calculateTakePrice(Position memory P) public view returns (uint256 cost, uint256 executionPrice) {
         executionPrice = getPriceOfAsset(IAToken(P.asset).UNDERLYING_ASSET_ADDRESS()) * 10 gwei;
 

@@ -38,7 +38,7 @@ error MinOneDay();
 error Unavailable();
 error OnlyTakerOrExpired();
 error Untaken();
-error Bro();
+error ValueSensitivity();
 error AaveRug();
 error InsufficientDuration();
 error AZero();

@@ -8,8 +8,8 @@ import {NavBar} from '@/app/ui/NavBar'
 // const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'GHOtick',
-  description: 'GHO denominated digital asset options',
+  title: 'GHOptim',
+  description: 'GHO optimal options',
 }
 
 export default function RootLayout({

@@ -17,7 +17,7 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
     mapping(address => bool) isAllowedAToken;
     mapping(address => uint256) assetTotalLiable;
 
-    mapping(address => bytes32[]) userHashes;
+    // mapping(address => bytes32[]) userHashes;
     mapping(bytes32 => Position) hashPosition;
 
     constructor(address GHOaddress) {
@@ -30,20 +30,18 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
     event PositionLiquid(bytes32 positionHash);
 
     function verifyLPsig(Position memory P) public pure returns (bool s) {
-        Position memory copy = P;
         bytes memory signature = P.LPsig;
-        delete copy.executionPrice;
-        delete copy.expriresAt;
-        delete copy.LPsig;
-        delete copy.taker;
+        delete P.executionPrice;
+        delete P.expriresAt;
+        delete P.LPsig;
+        delete P.taker;
 
-        copy.state = State.Staging;
-        copy.durationBalance[1] = 0;
+        P.state = State.Staging;
+        P.durationBalance[1] = 0;
 
-        bytes32 h = getEthSignedMessageHash(keccak256(abi.encode(copy)));
+        bytes32 h = getEthSignedMessageHash(keccak256(abi.encode(P)));
         address signer = recoverSigner(h, signature);
 
-        // P.taker = msg.sender;   //// @dev state poisoned in pure. P.taker in main returns 0x0;
         return (signer == P.lper);
     }
 
@@ -84,15 +82,20 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
 
     /// External
 
+    /// @notice gets all the aToken underlying assets and their prices
     function getAllAssetsPrices() public view returns (address[] memory assets, uint256[] memory prices) {
         assets = AaveV3Ethereum.POOL.getReservesList();
         prices = AaveV3Ethereum.ORACLE.getAssetsPrices(assets);
     }
 
+    //// @notice gets aToken address for Aave depositable asset
+    /// @param assetAddress underlying ERC20 token address
     function getATokenAddressFor(address assetAddress) public view returns (address aToken) {
         (aToken,,) = AaveV3Ethereum.AAVE_PROTOCOL_DATA_PROVIDER.getReserveTokensAddresses(assetAddress);
     }
 
+    /// @notice gets Aave Oracle price given a base underlying asset address, response uses 8 decimals
+    /// @param Asset address of base depositable asset
     function getPriceOfAsset(address Asset) public view returns (uint256) {
         return ORACLE.getAssetPrice(Asset);
     }
@@ -101,23 +104,26 @@ abstract contract AaveFx is IGHOptim, VerifySignature {
         return getPriceOfAsset(IAToken(aTokenAddress).UNDERLYING_ASSET_ADDRESS()) / 0.1 gwei;
     }
 
-    function getAllAaveAssetPrices() public view returns(address[] memory assets, uint256[] memory prices) {
+    function getAllAaveAssetPrices() public view returns (address[] memory assets, uint256[] memory prices) {
         (assets, prices) = getAllAssetsPrices();
-for (uint256 i = 0; i < assets.length; i++) {
-    assets[i] = getATokenAddressFor(assets[i]);
-}
+        for (uint256 i = 0; i < assets.length; i++) {
+            assets[i] = getATokenAddressFor(assets[i]);
+        }
     }
 
-    function getAllForUser(address userAddress) external view returns(address[] memory assets, uint256[] memory prices, Position[] memory userPositions) {
-        (assets, prices) = getAllAaveAssetPrices();
-        bytes32[] memory userHS = userHashes[userAddress];
-        
-        uint i;
-        for(i; i< userHS.length; ++i) {
-            userPositions[i] = hashPosition[userHS[i]];
-        }
+    // function getAllForUser(address userAddress)
+    //     external
+    //     view
+    //     returns (address[] memory assets, uint256[] memory prices, Position[] memory userPositions)
+    // {
+    //     (assets, prices) = getAllAaveAssetPrices();
+    //     bytes32[] memory userHS = userHashes[userAddress];
 
-    } 
+    //     uint256 i;
+    //     for (i; i < userHS.length; ++i) {
+    //         userPositions[i] = hashPosition[userHS[i]];
+    //     }
+    // }
 
     function getPosition(bytes32 hashOf) public view returns (Position memory) {
         return hashPosition[hashOf];

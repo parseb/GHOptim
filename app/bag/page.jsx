@@ -54,7 +54,7 @@ export default function Page() {
                             <TableCell>aMKR</TableCell>
                             <TableCell>47</TableCell>
                             <TableCell>Buy</TableCell>
-                            <TableCell>124 days</TableCell>
+                            <TableCell>0 days</TableCell>
                             <TableCell>+106</TableCell>
                             <TableCell>226</TableCell>
                             <TableCell>1020</TableCell>
